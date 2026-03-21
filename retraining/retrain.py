@@ -11,7 +11,7 @@ def main():
     parser.add_argument('--processing-role-arn', required=True)
     args = parser.parse_args()
  
-    sm = boto3.client('sagemaker')
+    sm = boto3.client('sagemaker', region_name='us-east-1')
     job_name = f"retrain-{datetime.utcnow().strftime('%Y%m%d-%H%M%S')}"
     output_path = f's3://{args.s3_bucket}/retrained-models/'
  
@@ -23,15 +23,13 @@ def main():
         AlgorithmSpecification={
             'TrainingImage': '683313688378.dkr.ecr.us-east-1.amazonaws.com/sagemaker-scikit-learn:1.2-1-cpu-py3',
             'TrainingInputMode': 'File',
-            'ContainerEntrypoint': ['python3'],
-            'ContainerArguments': ['/opt/ml/code/train.py']
         },
         InputDataConfig=[{
-            'ChannelName': 'training',
+            'ChannelName': 'train',
             'DataSource': {
                 'S3DataSource': {
                     'S3DataType': 'S3Prefix',
-                    'S3Uri': f's3://{args.s3_bucket}/training-data/',
+                    'S3Uri': f's3://{args.s3_bucket}/data/',
                     'S3DataDistributionType': 'FullyReplicated'
                 }
             }
@@ -46,8 +44,11 @@ def main():
         },
         StoppingCondition={'MaxRuntimeInSeconds': 3600},
         HyperParameters={
-            'n_estimators': '100',
-            'max_depth': '10'
+            'sagemaker_program': 'train.py',
+            'sagemaker_submit_directory': f's3://{args.s3_bucket}/source/sourcedir.tar.gz',
+            'sagemaker_region': 'us-east-1',
+            'sagemaker_container_log_level': '20' 
+
         }
     )
  
@@ -74,7 +75,7 @@ def main():
             '--processing-role-arn', args.processing_role_arn
         ], check=True)
     else:
-        sns = boto3.client('sns')
+        sns = boto3.client('sns', region_name='us-east-1')
         sns.publish(
             TopicArn=args.sns_topic_arn,
             Subject='Retraining Job Failed',

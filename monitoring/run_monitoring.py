@@ -9,7 +9,7 @@ from evidently.metric_preset import DataDriftPreset, TargetDriftPreset
 from evidently.metrics import ColumnDriftMetric
  
 def load_reference(s3_bucket):
-    s3 = boto3.client('s3')
+    s3 = boto3.client('s3', region_name='us-east-1')
     local = '/tmp/reference_data.csv'
     s3.download_file(s3_bucket, 'monitoring/reference/reference_data.csv', local)
     return pd.read_csv(local)
@@ -19,7 +19,7 @@ def load_current_data(s3_bucket):
     SageMaker data capture stores jsonl files under data-capture/.
     We parse predictions (output) and input text into a DataFrame.
     """
-    s3 = boto3.client('s3')
+    s3 = boto3.client('s3', region_name='us-east-1')
     paginator = s3.get_paginator('list_objects_v2')
     pages = paginator.paginate(Bucket=s3_bucket, Prefix='data-capture/')
     rows = []
@@ -107,7 +107,7 @@ def extract_drift_summary(report):
 def save_report(report, s3_bucket):
     local = '/tmp/drift_report.html'
     report.save_html(local)
-    s3 = boto3.client('s3')
+    s3 = boto3.client('s3', region_name='us-east-1')
     from datetime import datetime
     key = f"monitoring/reports/drift_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}.html"
     s3.upload_file(local, s3_bucket, key)
@@ -137,7 +137,7 @@ def main():
  
     report_key = save_report(report, args.s3_bucket)
  
-    sns = boto3.client('sns')
+    sns = boto3.client('sns', region_name='us-east-1')
     drift_detected = (
         summary['prediction_drift'] or
         summary['dataset_drift_detected'] or

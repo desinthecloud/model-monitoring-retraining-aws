@@ -29,7 +29,7 @@ VALIDATION_SAMPLES = [
  
 def download_model(model_artifact, local_dir='/tmp/model'):
     os.makedirs(local_dir, exist_ok=True)
-    s3 = boto3.client('s3')
+    s3 = boto3.client('s3', region_name='us-east-1')
     bucket = model_artifact.split('/')[2]
     key    = '/'.join(model_artifact.split('/')[3:])
     local_tar = os.path.join(local_dir, 'model.tar.gz')
@@ -82,8 +82,8 @@ def main():
     parser.add_argument('--processing-role-arn', required=True)
     args = parser.parse_args()
  
-    sns = boto3.client('sns')
-    sm  = boto3.client('sagemaker')
+    sns = boto3.client('sns', region_name='us-east-1')
+    sm  = boto3.client('sagemaker', region_name='us-east-1')
  
     print('Downloading retrained model for evaluation...')
     model_dir = download_model(args.model_artifact)
