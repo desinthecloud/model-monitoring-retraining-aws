@@ -156,4 +156,4 @@ aws s3 rb s3://your-bucket-name
 ## Author
 
 **Des (Desiree' Weston)**
-[desinthecloud.com](https://desinthecloud.com) | [@talktod33](https://github.com/talktod33)
+[desinthecloud@gmail.com](https://github.com/desinthecloud)
